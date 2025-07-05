@@ -1,3 +1,5 @@
+import UploadTranscript from "./components/UploadTranscript";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 text-gray-800">
@@ -9,7 +11,7 @@ export default function Home() {
           and key decisions — powered by AI.
         </p>
         <button className="bg-black text-white px-6 py-3 rounded-xl text-lg hover:bg-gray-800 transition">
-          Upload Transcript
+          <UploadTranscript />
         </button>
       </section>
 
