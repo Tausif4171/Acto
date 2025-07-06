@@ -4,16 +4,16 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 text-gray-800">
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center text-center py-20 px-4">
+      <section className="flex flex-col items-center justify-center text-center pt-20 pb-10 px-4">
         <h1 className="text-5xl md:text-6xl font-bold mb-4">Acto</h1>
-        <p className="text-lg md:text-xl max-w-2xl mb-10">
+        <p className="text-lg md:text-xl max-w-2xl">
           Upload your meeting transcript and get instant AI-powered summaries,
           action items, and decisions.
         </p>
       </section>
 
       {/* Upload Section */}
-      <section className="py-10 px-4">
+      <section className="pb-10 px-4">
         <UploadTranscript />
       </section>
       {/* How it Works */}
