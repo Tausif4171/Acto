@@ -21,7 +21,6 @@ export default function UploadTranscript() {
 
   const handleSubmit = async () => {
     if (!file) return alert("No file selected");
-
     setLoading(true);
     setError("");
     setSummary("");
@@ -31,20 +30,17 @@ export default function UploadTranscript() {
 
       const res = await fetch("http://localhost:8080/api/parse-transcript", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
       });
 
       const data = await res.json();
-
       if (res.ok) {
         setSummary(data.summary);
       } else {
         setError(data.error || "Something went wrong");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to connect to server");
     } finally {
       setLoading(false);
@@ -52,32 +48,33 @@ export default function UploadTranscript() {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
-      <h2 className="text-xl font-bold mb-4 text-center">
-        Upload Meeting Transcript
+    <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg transition-all duration-300">
+      <h2 className="text-2xl font-semibold mb-4 text-center">
+        🧾 Upload Transcript
       </h2>
 
-      <input
-        type="file"
-        accept=".txt"
-        onChange={handleFileChange}
-        className="mb-3"
-      />
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <input
+          type="file"
+          accept=".txt"
+          onChange={handleFileChange}
+          className="block w-full border border-gray-300 rounded-md px-4 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 hover:file:bg-gray-200"
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={!file || loading}
+          className="bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800 disabled:opacity-50"
+        >
+          {loading ? "Summarizing..." : "Summarize"}
+        </button>
+      </div>
 
-      {fileName && <p className="text-sm text-gray-600">📄 {fileName}</p>}
-
-      <button
-        onClick={handleSubmit}
-        disabled={!file || loading}
-        className="mt-3 w-full bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
-      >
-        {loading ? "Summarizing..." : "Submit"}
-      </button>
+      {fileName && <p className="text-sm text-gray-600 mt-2">📄 {fileName}</p>}
 
       {summary && (
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold mb-2">📝 Summary:</h3>
-          <pre className="bg-gray-100 p-4 rounded whitespace-pre-wrap">
+        <div className="mt-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
+          <h3 className="text-lg font-bold mb-2">📝 AI Summary:</h3>
+          <pre className="whitespace-pre-wrap text-sm text-gray-700">
             {summary}
           </pre>
         </div>
