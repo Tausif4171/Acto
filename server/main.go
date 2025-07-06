@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 type TranscriptRequest struct {
@@ -34,6 +35,13 @@ type OpenAIResponse struct {
 }
 
 func summarizeWithOpenAI(transcript string) (map[string]interface{}, error) {
+	// ✅ Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("❌ Error loading .env file")
+	}
+
+	// Now you can use os.Getenv() anywhere after this
 	apiKey := os.Getenv("OPENAI_API_KEY")
 
 	prompt := fmt.Sprintf(`Summarize this meeting transcript. Return:
@@ -45,7 +53,7 @@ Transcript:
 %s`, transcript)
 
 	body := OpenAIRequest{
-		Model: "gpt-3.5-turbo",
+		Model: "gpt-4o-mini",
 		Messages: []Message{
 			{Role: "user", Content: prompt},
 		},
@@ -67,14 +75,27 @@ Transcript:
 	}
 	defer res.Body.Close()
 
-	bodyBytes, _ := ioutil.ReadAll(res.Body)
+	bodyBytes, _ := io.ReadAll(res.Body)
+
+	// Log raw response for debugging
+	fmt.Println("🔥 OpenAI Raw Response:", string(bodyBytes))
+
 	var openAIRes OpenAIResponse
 	json.Unmarshal(bodyBytes, &openAIRes)
+
+	// ✅ Add a proper check:
+	if len(openAIRes.Choices) == 0 {
+		return nil, fmt.Errorf("OpenAI response was empty. Try again or check the prompt/input")
+	}
 
 	responseMap := map[string]interface{}{
 		"summary": openAIRes.Choices[0].Message.Content,
 	}
+
+	fmt.Println("Raw OpenAI response:", string(bodyBytes))
+
 	return responseMap, nil
+
 }
 
 func main() {
