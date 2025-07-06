@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 export default function UploadTranscript() {
   const [file, setFile] = useState<File | null>(null);
@@ -74,9 +75,9 @@ export default function UploadTranscript() {
       {summary && (
         <div className="mt-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
           <h3 className="text-lg font-bold mb-2">📝 AI Summary:</h3>
-          <pre className="whitespace-pre-wrap text-sm text-gray-700">
-            {summary}
-          </pre>
+          <div>
+            <ReactMarkdown>{summary}</ReactMarkdown>
+          </div>
         </div>
       )}
 
