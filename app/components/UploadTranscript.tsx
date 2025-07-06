@@ -4,7 +4,10 @@ import { useState } from "react";
 
 export default function UploadTranscript() {
   const [file, setFile] = useState<File | null>(null);
-  const [fileName, setFileName] = useState<string>("");
+  const [fileName, setFileName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [summary, setSummary] = useState("");
+  const [error, setError] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -17,46 +20,72 @@ export default function UploadTranscript() {
   };
 
   const handleSubmit = async () => {
-    if (!file) return alert("No file selected!");
+    if (!file) return alert("No file selected");
 
-    const text = await file.text();
+    setLoading(true);
+    setError("");
+    setSummary("");
 
-    // Replace with your backend API endpoint
-    const res = await fetch("http://localhost:8080/api/parse-transcript", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ content: text }),
-    });
+    try {
+      const content = await file.text();
 
-    const data = await res.json();
-    console.log("Summary received:", data);
-    // You can now display it or route to a new page with the data
+      const res = await fetch("http://localhost:8080/api/parse-transcript", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setSummary(data.summary);
+      } else {
+        setError(data.error || "Something went wrong");
+      }
+    } catch (err) {
+      setError("Failed to connect to server");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow mt-10">
-      <h3 className="text-xl font-semibold mb-4 text-center">Try it out</h3>
+    <div className="max-w-xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
+      <h2 className="text-xl font-bold mb-4 text-center">
+        Upload Meeting Transcript
+      </h2>
 
       <input
         type="file"
         accept=".txt"
         onChange={handleFileChange}
-        className="mb-4"
+        className="mb-3"
       />
 
-      {fileName && (
-        <p className="text-sm text-gray-600 mb-2">Selected: {fileName}</p>
-      )}
+      {fileName && <p className="text-sm text-gray-600">📄 {fileName}</p>}
 
       <button
         onClick={handleSubmit}
-        disabled={!file}
-        className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition"
+        disabled={!file || loading}
+        className="mt-3 w-full bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
       >
-        Submit
+        {loading ? "Summarizing..." : "Submit"}
       </button>
+
+      {summary && (
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold mb-2">📝 Summary:</h3>
+          <pre className="bg-gray-100 p-4 rounded whitespace-pre-wrap">
+            {summary}
+          </pre>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-4 text-red-600 text-sm font-medium">{error}</div>
+      )}
     </div>
   );
 }
