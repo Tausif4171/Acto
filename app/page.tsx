@@ -5,16 +5,17 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50 text-gray-800">
       {/* Hero */}
       <section className="flex flex-col items-center justify-center text-center py-20 px-4">
-        <h1 className="text-4xl md:text-6xl font-bold mb-4">Acto</h1>
-        <p className="text-lg md:text-xl max-w-2xl mb-6">
-          Upload your meeting transcript. Get instant summaries, action items,
-          and key decisions — powered by AI.
+        <h1 className="text-5xl md:text-6xl font-bold mb-4">Acto</h1>
+        <p className="text-lg md:text-xl max-w-2xl mb-10">
+          Upload your meeting transcript and get instant AI-powered summaries,
+          action items, and decisions.
         </p>
-        <button className="bg-black text-white px-6 py-3 rounded-xl text-lg hover:bg-gray-800 transition">
-          <UploadTranscript />
-        </button>
       </section>
 
+      {/* Upload Section */}
+      <section className="py-10 px-4">
+        <UploadTranscript />
+      </section>
       {/* How it Works */}
       <section className="py-16 px-6 bg-white">
         <h2 className="text-3xl font-semibold text-center mb-10">
