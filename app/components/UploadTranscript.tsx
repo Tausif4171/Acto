@@ -57,19 +57,34 @@ export default function UploadTranscript() {
 
     const element = document.createElement("div");
     element.innerHTML = `
-    <div style="
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      padding: 80px 60px;
-      line-height: 1.6;
-      color: #111;
-    ">
-      <h1 style="font-size: 20px; font-weight: bold; margin-bottom: 16px;">
-        AI Summary
-      </h1>
+  <div style="
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 24px 32px;
+    line-height: 1.6;
+    
+  ">
+    <div style="margin-bottom: 14px;">
+      <span style="font-size: 40px; font-weight: bold; color: tan; font-family: cursive;">Acto</span>
+    </div>
+
+    <h1 style="font-size: 20px; font-weight: bold; margin-bottom: 16px;">AI Summary</h1>
+    <div style="line-height: 1.6;">
       ${styledHTML}
     </div>
-  `;
+
+    <p style="
+      margin-top: 40px;
+      font-size: 12px;
+      color: #aaa;
+      text-align: center;
+      border-top: 1px solid #333;
+      padding-top: 12px;
+    ">
+      📄 Generated with <strong>Acto.ai</strong> – AI-powered meeting insights
+    </p>
+  </div>
+`;
 
     html2pdf()
       .from(element)
