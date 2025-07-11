@@ -4,6 +4,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 // @ts-ignore
 import html2pdf from "html2pdf.js";
+import { marked } from "marked";
 
 export default function UploadTranscript() {
   const [file, setFile] = useState<File | null>(null);
@@ -53,8 +54,10 @@ export default function UploadTranscript() {
   const handleDownloadPDF = () => {
     const element = document.createElement("div");
     element.innerHTML = `
-    <h2>AI Summary</h2>
-    <pre>${summary}</pre>
+  <div style="font-family: sans-serif; font-size: 14px; padding: 16px; white-space: pre-wrap;">
+    <h2 style="font-size: 18px; font-weight: bold;">AI Summary</h2>
+    ${marked.parse(summary)}
+  </div>
   `;
 
     html2pdf()
