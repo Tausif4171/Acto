@@ -51,22 +51,33 @@ export default function UploadTranscript() {
     }
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
+    const rawHTML = await marked.parse(summary);
+    const styledHTML = rawHTML.replaceAll("<p>", '<p style="margin: 8px 0;">');
+
     const element = document.createElement("div");
     element.innerHTML = `
-  <div style="font-family: sans-serif; font-size: 14px; padding: 16px; white-space: pre-wrap;">
-    <h2 style="font-size: 18px; font-weight: bold;">AI Summary</h2>
-    ${marked.parse(summary)}
-  </div>
+    <div style="
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      padding: 24px 32px;
+      line-height: 1.6;
+      color: #111;
+    ">
+      <h1 style="font-size: 20px; font-weight: bold; margin-bottom: 16px;">
+        AI Summary
+      </h1>
+      ${styledHTML}
+    </div>
   `;
 
     html2pdf()
       .from(element)
       .set({
-        margin: 1,
+        margin: 0,
         filename: fileName.replace(".txt", "-summary.pdf"),
         html2canvas: { scale: 2 },
-        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+        jsPDF: { unit: "pt", format: "a4", orientation: "portrait" },
       })
       .save();
   };
