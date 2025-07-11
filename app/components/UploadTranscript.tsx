@@ -60,7 +60,7 @@ export default function UploadTranscript() {
     <div style="
       font-family: Arial, sans-serif;
       font-size: 14px;
-      padding: 24px 32px;
+      padding: 80px 60px;
       line-height: 1.6;
       color: #111;
     ">
