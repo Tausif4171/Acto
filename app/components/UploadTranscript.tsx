@@ -3,6 +3,8 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 
+import html2pdf from "html2pdf.js";
+
 export default function UploadTranscript() {
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
@@ -48,6 +50,24 @@ export default function UploadTranscript() {
     }
   };
 
+  const handleDownloadPDF = () => {
+    const element = document.createElement("div");
+    element.innerHTML = `
+    <h2>AI Summary</h2>
+    <pre>${summary}</pre>
+  `;
+
+    html2pdf()
+      .from(element)
+      .set({
+        margin: 1,
+        filename: fileName.replace(".txt", "-summary.pdf"),
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+      })
+      .save();
+  };
+
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg transition-all duration-300">
       <h2 className="text-2xl font-semibold mb-4 text-center">
@@ -78,6 +98,12 @@ export default function UploadTranscript() {
           <div>
             <ReactMarkdown>{summary}</ReactMarkdown>
           </div>
+          <button
+            onClick={handleDownloadPDF}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            📄 Download PDF
+          </button>
         </div>
       )}
 
