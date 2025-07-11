@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-
+// @ts-ignore
 import html2pdf from "html2pdf.js";
 
 export default function UploadTranscript() {
