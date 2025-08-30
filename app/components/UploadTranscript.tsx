@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-// import html2pdf from "html2pdf.js";
 import { marked } from "marked";
 
 export default function UploadTranscript() {
@@ -11,6 +10,9 @@ export default function UploadTranscript() {
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [emailStatus, setEmailStatus] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -97,6 +99,35 @@ export default function UploadTranscript() {
       .save();
   };
 
+  const handleSendEmail = async () => {
+    if (!email) return alert("Please enter an email address");
+    setSending(true);
+    setEmailStatus("");
+
+    try {
+      const res = await fetch("http://localhost:8080/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toEmail: email,
+          subject: "📄 Your Acto Summary",
+          body: summary,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setEmailStatus("✅ Email sent successfully!");
+      } else {
+        setEmailStatus("❌ Failed to send: " + data.error);
+      }
+    } catch {
+      setEmailStatus("❌ Failed to connect to server");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg transition-all duration-300">
       <h2 className="text-2xl font-semibold mb-4 text-center">
@@ -124,15 +155,41 @@ export default function UploadTranscript() {
       {summary && (
         <div className="mt-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
           <h3 className="text-lg font-bold mb-2">📝 AI Summary:</h3>
-          <div>
+          <div className="prose prose-sm max-w-none">
             <ReactMarkdown>{summary}</ReactMarkdown>
           </div>
-          <button
-            onClick={handleDownloadPDF}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            📄 Download PDF
-          </button>
+
+          <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <button
+              onClick={handleDownloadPDF}
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              📄 Download PDF
+            </button>
+
+            <div className="flex-1 flex flex-col gap-2">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md text-sm"
+              />
+              <button
+                onClick={handleSendEmail}
+                disabled={!email || sending}
+                className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+              >
+                {sending ? "Sending..." : "📧 Send to Email"}
+              </button>
+            </div>
+          </div>
+
+          {emailStatus && (
+            <p className="mt-3 text-sm text-center text-gray-700">
+              {emailStatus}
+            </p>
+          )}
         </div>
       )}
 
