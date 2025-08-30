@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/smtp"
 	"os"
 
 	"github.com/gin-contrib/cors"
@@ -32,6 +33,12 @@ type OpenAIResponse struct {
 	Choices []struct {
 		Message Message `json:"message"`
 	} `json:"choices"`
+}
+
+type EmailRequest struct {
+	ToEmail string `json:"toEmail"`
+	Subject string `json:"subject"`
+	Body    string `json:"body"`
 }
 
 func summarizeWithOpenAI(transcript string) (map[string]interface{}, error) {
@@ -98,6 +105,67 @@ Transcript:
 
 }
 
+func sendSummaryEmail(toEmail string, summary string) error {
+	// Gmail SMTP config
+	from := os.Getenv("GMAIL_EMAIL")        // e.g. tausifkhan4171@gmail.com
+	password := os.Getenv("GMAIL_APP_PASS") // 16-digit app password
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	// Message
+	subject := "Subject: 📄 Your Acto Summary is Ready\r\n"
+	body := fmt.Sprintf("Here is your meeting summary:\r\n\n%s", summary)
+	message := []byte(subject + "\r\n" + body)
+
+	// Auth
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	// Send email
+	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{toEmail}, message)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("✅ Email sent successfully!")
+	return nil
+}
+
+func sendEmail(to, subject, body string) error {
+	from := os.Getenv("GMAIL_EMAIL")    // your Gmail address
+	password := os.Getenv("GMAIL_PASS") // App Password (not your real Gmail password!)
+
+	// Gmail SMTP server config
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	// Message format
+	message := []byte("Subject: " + subject + "\r\n" +
+		"\r\n" + body + "\r\n")
+
+	// Auth
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	// Send email
+	return smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, message)
+}
+
+func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
+	var req EmailRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	err := sendEmail(req.ToEmail, req.Subject, req.Body)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to send email: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "Email sent successfully")
+}
+
 func main() {
 	router := gin.Default()
 
@@ -119,6 +187,8 @@ func main() {
 		c.JSON(http.StatusOK, summary)
 	})
 
+	router.POST("/api/send-email", sendEmailHandler)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -126,4 +196,5 @@ func main() {
 
 	log.Printf("Server running on port %s", port)
 	router.Run(":" + port)
+
 }
