@@ -150,37 +150,36 @@ export default function UploadTranscript() {
         </button>
       </div>
 
-      {fileName && <p className="text-sm text-gray-600 mt-2">📄 {fileName}</p>}
-
+      {/* Summary Section */}
       {summary && (
-        <div className="mt-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-bold mb-2">📝 AI Summary:</h3>
-          <div className="prose prose-sm max-w-none">
+        <div className="mt-8 bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
+          <h3 className="text-xl font-bold mb-3">📝 AI Summary</h3>
+          <div className="prose prose-sm max-w-none text-gray-800">
             <ReactMarkdown>{summary}</ReactMarkdown>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 mt-6">
+          <div className="flex flex-col sm:flex-row gap-4 mt-6">
             <button
               onClick={handleDownloadPDF}
-              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
             >
               📄 Download PDF
             </button>
 
-            <div className="flex-1 flex flex-col gap-2">
+            <div className="flex-1 flex gap-2">
               <input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md text-sm"
+                className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500"
               />
               <button
                 onClick={handleSendEmail}
                 disabled={!email || sending}
-                className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 disabled:opacity-50"
               >
-                {sending ? "Sending..." : "📧 Send to Email"}
+                {sending ? "📤 Sending..." : "📧 Send"}
               </button>
             </div>
           </div>
