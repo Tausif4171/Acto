@@ -158,15 +158,15 @@ export default function UploadTranscript() {
             <ReactMarkdown>{summary}</ReactMarkdown>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-6">
+          <div className="flex flex-col mt-6">
             <button
               onClick={handleDownloadPDF}
-              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 w-56"
             >
               📄 Download PDF
             </button>
 
-            <div className="flex-1 flex gap-2">
+            <div className="flex gap-2 mt-4">
               <input
                 type="email"
                 placeholder="Enter your email"
