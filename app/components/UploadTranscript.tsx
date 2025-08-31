@@ -139,7 +139,7 @@ export default function UploadTranscript() {
           type="file"
           accept=".txt"
           onChange={handleFileChange}
-          className="block border-2 border-dashed border-gray-300 rounded-lg text-center hover:bg-gray-50 transition w-full p-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 hover:file:bg-gray-200"
+          className="block border-2 border-dashed border-gray-300 rounded-lg text-center hover:bg-gray-50 transition w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 hover:file:bg-gray-200"
         />
         <button
           onClick={handleSubmit}
