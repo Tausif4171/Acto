@@ -36,9 +36,20 @@ type OpenAIResponse struct {
 }
 
 type EmailRequest struct {
-	ToEmail string `json:"toEmail"`
-	Subject string `json:"subject"`
-	Body    string `json:"body"`
+	Emails  []string `json:"emails"`
+	Subject string   `json:"subject"`
+	Body    string   `json:"body"`
+}
+
+type EmailResult struct {
+	Email   string `json:"email"`
+	Status  string `json:"status"`
+	Success bool   `json:"success"`
+}
+
+type EmailResponse struct {
+	Results []EmailResult `json:"results"`
+	Message string        `json:"message"`
 }
 
 func summarizeWithOpenAI(transcript string) (map[string]interface{}, error) {
@@ -119,13 +130,43 @@ func sendEmailHandler(c *gin.Context) {
 		return
 	}
 
-	err := sendEmail(req.ToEmail, req.Subject, req.Body)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to send email: %v", err)})
+	if len(req.Emails) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No email addresses provided"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "✅ Email sent successfully!"})
+	if len(req.Emails) > 10 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Maximum 10 emails allowed"})
+		return
+	}
+
+	var results []EmailResult
+	successCount := 0
+
+	for _, email := range req.Emails {
+		err := sendEmail(email, req.Subject, req.Body)
+		if err != nil {
+			results = append(results, EmailResult{
+				Email:   email,
+				Status:  fmt.Sprintf("Failed: %v", err),
+				Success: false,
+			})
+		} else {
+			results = append(results, EmailResult{
+				Email:   email,
+				Status:  "Sent successfully",
+				Success: true,
+			})
+			successCount++
+		}
+	}
+
+	response := EmailResponse{
+		Results: results,
+		Message: fmt.Sprintf("Successfully sent to %d/%d recipients", successCount, len(req.Emails)),
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func main() {
