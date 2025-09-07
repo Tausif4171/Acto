@@ -11,8 +11,10 @@ export default function UploadTranscript() {
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
+  const [emails, setEmails] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [emailStatus, setEmailStatus] = useState("");
+  const [emailResults, setEmailResults] = useState<{email: string, status: string, success: boolean}[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -99,17 +101,55 @@ export default function UploadTranscript() {
       .save();
   };
 
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const addEmail = () => {
+    if (!email.trim()) return;
+    
+    if (!validateEmail(email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+    
+    if (emails.includes(email)) {
+      alert("Email already added");
+      return;
+    }
+    
+    if (emails.length >= 10) {
+      alert("Maximum 10 emails allowed");
+      return;
+    }
+    
+    setEmails([...emails, email]);
+    setEmail("");
+  };
+
+  const removeEmail = (emailToRemove: string) => {
+    setEmails(emails.filter(e => e !== emailToRemove));
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addEmail();
+    }
+  };
+
   const handleSendEmail = async () => {
-    if (!email) return alert("Please enter an email address");
+    if (emails.length === 0) return alert("Please add at least one email address");
     setSending(true);
     setEmailStatus("");
+    setEmailResults([]);
 
     try {
       const res = await fetch("http://localhost:8080/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          toEmail: email,
+          emails: emails,
           subject: "📄 Your Acto Summary",
           body: summary,
         }),
@@ -117,7 +157,9 @@ export default function UploadTranscript() {
 
       const data = await res.json();
       if (res.ok) {
-        setEmailStatus("✅ Email sent successfully!");
+        setEmailResults(data.results || []);
+        const successCount = data.results?.filter((r: any) => r.success).length || 0;
+        setEmailStatus(`✅ Successfully sent to ${successCount}/${emails.length} recipients`);
       } else {
         setEmailStatus("❌ Failed to send: " + data.error);
       }
@@ -166,21 +208,61 @@ export default function UploadTranscript() {
               📄 Download PDF
             </button>
 
-            <div className="flex gap-2 mt-4">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500"
-              />
-              <button
-                onClick={handleSendEmail}
-                disabled={!email || sending}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 disabled:opacity-50"
-              >
-                {sending ? "📤 Sending..." : "📧 Send"}
-              </button>
+            <div className="mt-4">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="Enter email and press Enter"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                />
+                <button
+                  onClick={addEmail}
+                  className="bg-gray-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-gray-600"
+                >
+                  Add
+                </button>
+              </div>
+              
+              {emails.length > 0 && (
+                <div className="mt-3">
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {emails.map((emailItem, index) => (
+                      <div
+                        key={index}
+                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                      >
+                        <span>{emailItem}</span>
+                        <button
+                          onClick={() => removeEmail(emailItem)}
+                          className="text-blue-600 hover:text-blue-800 font-bold"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSendEmail}
+                      disabled={emails.length === 0 || sending}
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {sending ? "📤 Sending..." : `📧 Send to ${emails.length} recipient${emails.length > 1 ? 's' : ''}`}
+                    </button>
+                    
+                    <button
+                      onClick={() => setEmails([])}
+                      className="bg-red-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-600"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -188,6 +270,19 @@ export default function UploadTranscript() {
             <p className="mt-3 text-sm text-center text-gray-700">
               {emailStatus}
             </p>
+          )}
+          
+          {emailResults.length > 0 && (
+            <div className="mt-3 space-y-1">
+              {emailResults.map((result, index) => (
+                <div key={index} className="flex items-center justify-between text-sm px-2 py-1 rounded">
+                  <span className="text-gray-600">{result.email}</span>
+                  <span className={result.success ? "text-green-600" : "text-red-600"}>
+                    {result.success ? "✅ Sent" : `❌ ${result.status}`}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
