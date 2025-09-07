@@ -14,7 +14,7 @@ export default function UploadTranscript() {
   const [emails, setEmails] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [emailStatus, setEmailStatus] = useState("");
-  const [emailResults, setEmailResults] = useState<{email: string, status: string, success: boolean}[]>([]);
+  const [emailError, setEmailError] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -108,18 +108,20 @@ export default function UploadTranscript() {
   const addEmail = () => {
     if (!email.trim()) return;
     
+    setEmailError(""); // Clear previous errors
+    
     if (!validateEmail(email)) {
-      alert("Please enter a valid email address");
+      setEmailError("Please enter a valid email address");
       return;
     }
     
     if (emails.includes(email)) {
-      alert("Email already added");
+      setEmailError("Email already added");
       return;
     }
     
     if (emails.length >= 10) {
-      alert("Maximum 10 emails allowed");
+      setEmailError("Maximum 10 emails allowed");
       return;
     }
     
@@ -131,7 +133,7 @@ export default function UploadTranscript() {
     setEmails(emails.filter(e => e !== emailToRemove));
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addEmail();
@@ -142,7 +144,6 @@ export default function UploadTranscript() {
     if (emails.length === 0) return alert("Please add at least one email address");
     setSending(true);
     setEmailStatus("");
-    setEmailResults([]);
 
     try {
       const res = await fetch("http://localhost:8080/api/send-email", {
@@ -157,9 +158,7 @@ export default function UploadTranscript() {
 
       const data = await res.json();
       if (res.ok) {
-        setEmailResults(data.results || []);
-        const successCount = data.results?.filter((r: any) => r.success).length || 0;
-        setEmailStatus(`✅ Successfully sent to ${successCount}/${emails.length} recipients`);
+        setEmailStatus("✅ Emails sent successfully!");
       } else {
         setEmailStatus("❌ Failed to send: " + data.error);
       }
@@ -215,8 +214,8 @@ export default function UploadTranscript() {
                   placeholder="Enter email and press Enter"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                  onKeyDown={handleKeyDown}
+                  className={`flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 ${emailError ? 'border-red-500 focus:ring-red-500' : 'focus:ring-green-500'}`}
                 />
                 <button
                   onClick={addEmail}
@@ -225,6 +224,10 @@ export default function UploadTranscript() {
                   Add
                 </button>
               </div>
+              
+              {emailError && (
+                <p className="mt-2 text-sm text-red-600">{emailError}</p>
+              )}
               
               {emails.length > 0 && (
                 <div className="mt-3">
@@ -272,18 +275,6 @@ export default function UploadTranscript() {
             </p>
           )}
           
-          {emailResults.length > 0 && (
-            <div className="mt-3 space-y-1">
-              {emailResults.map((result, index) => (
-                <div key={index} className="flex items-center justify-between text-sm px-2 py-1 rounded">
-                  <span className="text-gray-600">{result.email}</span>
-                  <span className={result.success ? "text-green-600" : "text-red-600"}>
-                    {result.success ? "✅ Sent" : `❌ ${result.status}`}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
 
