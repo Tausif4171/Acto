@@ -15,6 +15,7 @@ export default function UploadTranscript() {
   const [sending, setSending] = useState(false);
   const [emailStatus, setEmailStatus] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [fileError, setFileError] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
