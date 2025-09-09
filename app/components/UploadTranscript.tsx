@@ -15,14 +15,26 @@ export default function UploadTranscript() {
   const [sending, setSending] = useState(false);
   const [emailStatus, setEmailStatus] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [fileError, setFileError] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
-    if (selected && selected.type === "text/plain") {
+    setFileError(""); // Clear previous errors
+    
+    if (!selected) {
+      setFile(null);
+      setFileName("");
+      return;
+    }
+    
+    if (selected.type === "text/plain" || selected.name.endsWith('.txt')) {
       setFile(selected);
       setFileName(selected.name);
+      setFileError("");
     } else {
-      alert("Please upload a valid .txt file");
+      setFile(null);
+      setFileName("");
+      setFileError(`Invalid file type: ${selected.type || 'unknown'}. Please upload a .txt file.`);
     }
   };
 
@@ -180,16 +192,35 @@ export default function UploadTranscript() {
           type="file"
           accept=".txt"
           onChange={handleFileChange}
-          className="block border-2 border-dashed border-gray-300 rounded-lg text-center hover:bg-gray-50 transition w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 hover:file:bg-gray-200"
+          className={`block border-2 border-dashed rounded-lg text-center hover:bg-gray-50 transition w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 hover:file:bg-gray-200 ${fileError ? 'border-red-400' : 'border-gray-300'}`}
         />
         <button
           onClick={handleSubmit}
-          disabled={!file || loading}
-          className="bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800 disabled:opacity-50"
+          disabled={!file || loading || fileError !== ""}
+          className="bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
-          {loading ? "Summarizing..." : "Summarize"}
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Summarizing...
+            </span>
+          ) : (
+            "Summarize"
+          )}
         </button>
       </div>
+
+      {fileError && (
+        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-700 text-sm font-medium">⚠️ {fileError}</p>
+        </div>
+      )}
+
+      {fileName && !fileError && (
+        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-green-700 text-sm font-medium">✅ File selected: {fileName}</p>
+        </div>
+      )}
 
       {/* Summary Section */}
       {summary && (
